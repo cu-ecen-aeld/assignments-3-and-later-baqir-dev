@@ -16,6 +16,11 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
+    int ret = system(cmd);
+    if(ret != 0)
+    {
+        return false;
+    }	
 
     return true;
 }
@@ -58,10 +63,44 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+    printf("Command: ");
+    for(i=0; i<count; i++)
+    {
+        printf("%s ",command[i]);
+    }
+    printf("\n");
 
+    pid_t child_pid;
+    int child_status;
+    int ret = true;
+
+    fflush(stdout);
+    child_pid = fork();
+    if (child_pid == -1){
+        //Failed to fork
+        printf("can't fork, error occurred\n");
+        ret = false;
+    }
+    else if (child_pid == 0){
+        //child process
+        execv(command[0], command);
+	perror(command[0]);
+	exit(1);
+    }
+    else
+    {
+        //parent process
+        printf("waiting for process to terminate\n");
+        wait(&child_status);
+        printf("child_status: %d\n", child_status);
+    	if(child_status != 0)
+    	{
+            ret = false;
+    	} 
+    }
     va_end(args);
-
-    return true;
+	
+    return ret;
 }
 
 /**
@@ -92,8 +131,57 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    int fd = open(outputfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+    if (fd < 0) 
+    { 
+	    perror("open"); 
+	    return false; 
+    }
+
+    printf("Command: ");
+    for(i=0; i<count; i++)
+    {
+        printf("%s ",command[i]);
+    }
+    printf("\n");
+
+    pid_t child_pid;
+    int child_status;
+    int ret = true;
+
+    fflush(stdout);
+    child_pid = fork();
+    if (child_pid == -1){
+        //Failed to fork
+        printf("can't fork, error occurred\n");
+        ret = false;
+    }    
+    else if (child_pid == 0){
+        //child process
+	if (dup2(fd, 1) < 0) 
+	{ 
+	    perror("dup2"); 
+	    exit(2); 
+	}
+        close(fd);
+
+        execv(command[0], command);
+        perror(command[0]);
+        exit(1);
+    }
+    else
+    {
+        //parent process
+        printf("waiting for process to terminate\n");
+        wait(&child_status);
+        printf("child_status: %d\n", child_status);
+        if(child_status != 0)
+        {
+            ret = false;
+        }
+    }
 
     va_end(args);
 
-    return true;
+    return ret;
 }
