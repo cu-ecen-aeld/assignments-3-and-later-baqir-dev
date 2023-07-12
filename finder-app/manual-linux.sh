@@ -75,9 +75,9 @@ else
 fi
 
 # TODO: Make and install busybox
-    #make distclean
-    #make defconfig
-    #make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
+    make distclean
+    make defconfig
+    make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
     make CONFIG_PREFIX=${OUTDIR}/rootfs ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} install
 
 echo "Library dependencies"
