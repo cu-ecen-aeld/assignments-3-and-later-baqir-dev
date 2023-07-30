@@ -189,6 +189,7 @@ int main(int argc, char** argv)
 
     sockFd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFd == -1) {
+	perror("socket");
         printf("socket creation failed...\n");
         return -1;
     }
@@ -215,6 +216,7 @@ int main(int argc, char** argv)
 
     // Binding socket
     if ((bind(sockFd, servinfo->ai_addr, servinfo->ai_addrlen)) != 0) {
+	perror("Bind");
         printf("socket bind failed...\n");
         return -1;
     }
